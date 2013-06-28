@@ -16,10 +16,10 @@ namespace FirstSpeechTest
     public partial class Form1 : Form
     {
         const string grammarConfigurationFile = "grammar.cfg";
+        const string FUSIONBRAIN6_DIGITAL = "D:{0:D2}:{1:D}\n";
 
         private SpeechRecognizer sr;
         private string[] commands = new string[2+2*4];
-        private HttpListener webListen;
         private HttpServer webServer;
         private delegate void Del();
 
@@ -31,7 +31,7 @@ namespace FirstSpeechTest
         private void Form1_Load(object sender, EventArgs e)
         {
 
-            // much code from http://msdn.microsoft.com/en-us/library/hh361683(v=office.14).aspx
+            // much speech code from http://msdn.microsoft.com/en-us/library/hh361683(v=office.14).aspx
 
             /// Initialize the Speech Recognizer ///
             // Create a new SpeechRecognizer instance.
@@ -44,18 +44,6 @@ namespace FirstSpeechTest
 
             /// Register for Speech Recognition Event Notification ///
             sr.SpeechRecognized += new EventHandler<SpeechRecognizedEventArgs>(sr_SpeechRecognized);
-
-
-            /// start server
-            /// http://msdn.microsoft.com/en-us/library/system.net.httplistener.aspx
-            //webListen = new HttpListener();
-            //webListen.Prefixes.Add("http://*:8080/");
-            // start requires permissions: http://stackoverflow.com/a/4115328
-            //webListen.Start();
-            // get context (blocking)
-            // request
-            // response
-
 
             webServer = new HttpServer();
             if( webServer.Start("http://*:8080/") ){
@@ -80,7 +68,6 @@ namespace FirstSpeechTest
         void sr_SpeechRecognized(object sender, SpeechRecognizedEventArgs speechEvent)
         {
             
-
             int commandIndex = -1;
             for (int i = 0; i < commands.Length; i++)
             {
@@ -93,64 +80,91 @@ namespace FirstSpeechTest
 
             writeLog("(" + commandIndex + ") " + speechEvent.Result.Text);
 
+            // could skip switch for
+            //writeLog((int)(commandIndex / 2) + " " + (commandIndex % 2));
+            // but *very* future blind
+
             switch (commandIndex)
             {
                 case 0:
                     // on
-                    // one string for a faster command
-                    writeToPort(
-                        "D:01:255\n" +
-                        "D:02:255\n" +
-                        "D:03:255\n" +
-                        "D:04:255\n"
-                    );
+                    controlChannel(int.MaxValue, 1);
                     break;
                 case 1:
                     // off
-                    // one string for a faster command
-                    writeToPort(
-                        "D:01:0\n" +
-                        "D:02:0\n" +
-                        "D:03:0\n" +
-                        "D:04:0\n"
-                    );
+                    controlChannel(int.MaxValue, 0);
                     break;
                 case 2:
                     // on
-                    writeToPort("D:01:255\n");
+                    controlChannel(1, 1);
                     break;
                 case 3:
                     // off
-                    writeToPort("D:01:0\n");
+                    controlChannel(1, 0);
                     break;
                 case 4:
                     // on
-                    writeToPort("D:02:255\n");
+                    controlChannel(2, 1);
                     break;
                 case 5:
                     // off
-                    writeToPort("D:02:0\n");
+                    controlChannel(2, 0);
                     break;
                 case 6:
                     // on
-                    writeToPort("D:03:255\n");
+                    controlChannel(3, 1);
                     break;
                 case 7:
                     // off
-                    writeToPort("D:03:0\n");
+                    controlChannel(3, 0);
                     break;
                 case 8:
                     // on
-                    writeToPort("D:04:255\n");
+                    controlChannel(4, 1);
                     break;
                 case 9:
                     // off
-                    writeToPort("D:04:0\n");
+                    controlChannel(4, 0);
                     break;
                 default:
+                    writeLog("unknown voice command: " + speechEvent.Result.Text);
                     break;
             }
 
+        }
+
+        public bool controlChannel(int index, float percentageDimmed)
+        {
+            if ((index < 0) || ((index > 31)&&(index!=int.MaxValue)) )
+                return false;
+            if (percentageDimmed < 0)
+                percentageDimmed = -1 * percentageDimmed;
+            if (percentageDimmed > 1)
+                percentageDimmed = 1;
+            int channelValue = (int)(255 * percentageDimmed);
+
+            if (index == int.MaxValue)
+            {
+                // one string for a faster command
+                string allPorts = "";
+
+                int maxChannel = 31;
+
+                // all 30+ LED's are too much for USB to power
+                // ...or I hurt my FB6 by running relays without a diode protector :'(
+                // hardware failure when turning *all* all on
+                if (percentageDimmed > 0)
+                    maxChannel = 5;
+                for (int i = 1; i < maxChannel; i++)
+                {
+                    allPorts += String.Format(FUSIONBRAIN6_DIGITAL, i, channelValue);
+                }
+                return writeToPort(allPorts);
+            }
+            else
+            {
+                return writeToPort(String.Format(FUSIONBRAIN6_DIGITAL, index, channelValue));
+            }
         }
 
         private void writeLog(string lineToAdd)
@@ -188,9 +202,6 @@ namespace FirstSpeechTest
 
             /// Load the Grammar into the Speech Recognizer ///
             sr.LoadGrammar(g);
-
-
-            //throw new NotImplementedException();
         }
 
         private void loadCommandsFromTextBoxes()
@@ -225,6 +236,7 @@ namespace FirstSpeechTest
 
         private void nud_com_number_ValueChanged(object sender, EventArgs e)
         {
+            //TODO smart detect available ports
             sp_fusionBrain6.PortName = "COM" + nud_com_number.Value;
         }
 
@@ -233,12 +245,13 @@ namespace FirstSpeechTest
                 sp_fusionBrain6.Open();
                 sp_fusionBrain6.Write( toSend );
                 sp_fusionBrain6.Close();
+                writeLog_threadsafe("sent command " + toSend);
                 return true;
             }
             catch (Exception exception)
             {
                 Console.WriteLine(exception);
-                writeLog("Error in COM port communication, on "+sp_fusionBrain6.PortName);
+                writeLog_threadsafe("Error in COM port communication, on " + sp_fusionBrain6.PortName);
             }
             return false;
         }
@@ -252,7 +265,7 @@ namespace FirstSpeechTest
             }
             else
             {
-                // faster creation
+                // faster creation?
                 FileStream grammarFile = System.IO.File.Create(grammarConfigurationFile);
                 grammarFile.Close();
 
@@ -268,24 +281,101 @@ namespace FirstSpeechTest
 
         private void handleWebRequest(HttpListenerContext Context)
         {
-            this.Invoke((MethodInvoker)delegate
-            {
-                this.writeLog("Cross thread call!");
-            });
 
-            writeLog_threadsafe("handleWebRequest called!");
+            //writeLog_threadsafe("handleWebRequest called!");
             HttpListenerRequest Request = Context.Request;
             HttpListenerResponse Response = Context.Response;
             //writeLog("can we write during a delegate?"); // YES!! but not when debugging...writeLog_threadsafe!!
             //writeLog_threadsafe(Request.HttpMethod + " " + Request.RawUrl + " Http/" + Request.ProtocolVersion.ToString());
-            writeLog_threadsafe("HttpMethod: " + Request.HttpMethod);
-            writeLog_threadsafe("RawUrl: " + Request.RawUrl);
-            writeLog_threadsafe("Protocol Version: " + Request.ProtocolVersion.ToString());
+            //writeLog_threadsafe("HttpMethod: " + Request.HttpMethod);
+            //writeLog_threadsafe("RawUrl: " + Request.RawUrl);
+            //writeLog_threadsafe("Protocol Version: " + Request.ProtocolVersion.ToString());
+
+            string[] requestPath = Request.RawUrl.Substring(1).Split('/');
+
+            /*
+            for (int i = 0; i < requestPath.Length; i++)
+            {
+                writeLog_threadsafe("path " + i + " is " + requestPath[i]);
+            }//*/
+            int channel;
+            
+            string responseString;
+
+
+            // default response (unhandled)
+            responseString = "<html><body><h1>Hello world</h1>Time is: " + DateTime.Now.ToString() + "</body></html>";
+
+            /// url forms:
+            /// example.com/api/channels/1/on     on all the way (dimming % is 100%)
+            /// example.com/api/channels/3/on/50  for dimming (% of full)
+
+            if (requestPath.Length > 0)
+            {
+                switch (requestPath[0])
+                {
+                    case "api":
+                        if (requestPath.Length < 2)
+                            break;
+                        switch (requestPath[1])
+                        {
+                            case "channels":
+                                if (requestPath.Length < 3)
+                                    break;
+                                //TODO check for "all" instead of number
+                                if( "all".Equals(requestPath[2]) ){
+                                    channel = int.MaxValue;
+                                }else{
+                                    try{
+                                        channel = int.Parse(requestPath[2]);
+                                    }catch(Exception e){
+                                        // TODO handle incorrect channel
+                                        break;
+                                    }
+                                }
+
+                                if (requestPath.Length < 4)
+                                    break;
+                                switch (requestPath[3])
+                                {
+                                    case "on":
+                                        writeLog_threadsafe("API request to turn " + channel + " on");
+                                        if (controlChannel(channel, 1))
+                                        {
+                                            responseString = "<html><body>Correct API endpoint, channel " + channel + " and command successful</body></html>";
+                                        }
+                                        else
+                                        {
+                                            responseString = "<html><body>Correct API endpoint, channel " + channel + " but error in execution of command :(</body></html>";
+                                        }
+                                        break;
+                                    case "off":
+                                        writeLog_threadsafe("API request to turn " + channel + " off");
+                                        if (controlChannel(channel, 0))
+                                        {
+                                            responseString = "<html><body>Correct API endpoint, channel " + channel + " and command successful</body></html>";
+                                        }
+                                        else
+                                        {
+                                            responseString = "<html><body>Correct API endpoint, channel " + channel + " but error in execution of command :(</body></html>";
+                                        }
+                                        break;
+                                    default:
+                                        break;
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+
 
             // http://www.west-wind.com/weblog/posts/2005/Dec/04/Add-a-Web-Server-to-your-NET-20-app-with-a-few-lines-of-code
-            string Output = "<html><body><h1>Hello world</h1>Time is: " + DateTime.Now.ToString() + "<pre>" + "stuff" + "</pre>";
-
-            byte[] bOutput = System.Text.Encoding.UTF8.GetBytes(Output);
+            byte[] bOutput = System.Text.Encoding.UTF8.GetBytes(responseString);
 
             Response.ContentType = "text/html";
             Response.ContentLength64 = bOutput.Length;
