@@ -276,8 +276,8 @@ namespace FirstSpeechTest
             writeLog_threadsafe("handleWebRequest called!");
             HttpListenerRequest Request = Context.Request;
             HttpListenerResponse Response = Context.Response;
-            //writeLog("can we write during a delegate?"); // YES!!
-            //writeLog(Request.HttpMethod + " " + Request.RawUrl + " Http/" + Request.ProtocolVersion.ToString());
+            //writeLog("can we write during a delegate?"); // YES!! but not when debugging...writeLog_threadsafe!!
+            //writeLog_threadsafe(Request.HttpMethod + " " + Request.RawUrl + " Http/" + Request.ProtocolVersion.ToString());
             writeLog_threadsafe("HttpMethod: " + Request.HttpMethod);
             writeLog_threadsafe("RawUrl: " + Request.RawUrl);
             writeLog_threadsafe("Protocol Version: " + Request.ProtocolVersion.ToString());
