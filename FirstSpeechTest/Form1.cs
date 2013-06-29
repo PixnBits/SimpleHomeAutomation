@@ -10,6 +10,7 @@ using System.Speech.Recognition;
 using System.IO;
 using System.Net;
 using Westwind.InternetTools;
+using System.Speech.Synthesis;
 
 namespace FirstSpeechTest
 {
@@ -53,7 +54,7 @@ namespace FirstSpeechTest
                 delReceiveWebRequest handleWebRequest_delegate = handleWebRequest;
                 webServer.ReceiveWebRequest += new Westwind.InternetTools.delReceiveWebRequest(handleWebRequest_delegate);
             }else{
-                writeLog("Server could not be started, do you have admin privs?");
+                writeLog("Server could not be started, do you have admin privs?", true);
                 writeLog("You could try http://stackoverflow.com/a/4115328 so as to not need them all the time");
             }
             
@@ -79,6 +80,7 @@ namespace FirstSpeechTest
         void noteIcon_MouseClick(object sender, MouseEventArgs e)
         {
             WindowState = FormWindowState.Normal;
+            this.ShowInTaskbar = true;
             noteIcon.Visible = false;
         }
 
@@ -104,7 +106,7 @@ namespace FirstSpeechTest
                 }
             }
 
-            writeLog("(" + commandIndex + ") " + speechEvent.Result.Text);
+            writeLog("(" + commandIndex + ") " + speechEvent.Result.Text, true);
 
             // could skip switch for
             //writeLog((int)(commandIndex / 2) + " " + (commandIndex % 2));
@@ -153,7 +155,7 @@ namespace FirstSpeechTest
                     controlChannel(4, 0);
                     break;
                 default:
-                    writeLog("unknown voice command: " + speechEvent.Result.Text);
+                    writeLog("unknown voice command: " + speechEvent.Result.Text, true);
                     break;
             }
 
@@ -194,19 +196,26 @@ namespace FirstSpeechTest
             }
         }
 
-        private void writeLog(string lineToAdd)
+        private void writeLog(string lineToAdd, bool alsoSpeak = false)
         {
             Console.WriteLine(lineToAdd);
             tb_log.Text += lineToAdd + Environment.NewLine;
             tb_log.SelectionStart = tb_log.Text.Length;
             tb_log.ScrollToCaret();
+
+            if(alsoSpeak)
+            {
+                SpeechSynthesizer synth = new SpeechSynthesizer();
+                Prompt sayThis = new Prompt(lineToAdd);
+                synth.Speak(sayThis);
+            }
         }
 
-        private void writeLog_threadsafe(string lineToAdd)
+        private void writeLog_threadsafe(string lineToAdd, bool alsoSpeak = false)
         {
             this.Invoke((MethodInvoker)delegate
             {
-                this.writeLog(lineToAdd);
+                this.writeLog(lineToAdd, alsoSpeak);
             });
         }
 
@@ -278,7 +287,7 @@ namespace FirstSpeechTest
             catch (Exception exception)
             {
                 Console.WriteLine(exception);
-                writeLog_threadsafe("Error in COM port communication, on " + sp_fusionBrain6.PortName);
+                writeLog_threadsafe("Error in COM port communication, on " + sp_fusionBrain6.PortName, true);
             }
             return false;
         }
@@ -366,7 +375,7 @@ namespace FirstSpeechTest
                                 switch (requestPath[3])
                                 {
                                     case "on":
-                                        writeLog_threadsafe("API request to turn " + channel + " on");
+                                        writeLog_threadsafe("API request to turn " + channel + " on", true);
                                         if (controlChannel(channel, 1))
                                         {
                                             responseString = "<html><body>Correct API endpoint, channel " + channel + " and command successful</body></html>";
@@ -377,7 +386,7 @@ namespace FirstSpeechTest
                                         }
                                         break;
                                     case "off":
-                                        writeLog_threadsafe("API request to turn " + channel + " off");
+                                        writeLog_threadsafe("API request to turn " + channel + " off", true);
                                         if (controlChannel(channel, 0))
                                         {
                                             responseString = "<html><body>Correct API endpoint, channel " + channel + " and command successful</body></html>";
