@@ -32,6 +32,7 @@ namespace FirstSpeechTest
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            this.Icon = Properties.Resources.preferences_desktop;
 
             createNotifyIcon();
 
