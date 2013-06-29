@@ -18,6 +18,7 @@ namespace FirstSpeechTest
         const string grammarConfigurationFile = "grammar.cfg";
         const string FUSIONBRAIN6_DIGITAL = "D:{0:D2}:{1:D}\n";
 
+        private NotifyIcon noteIcon;
         private SpeechRecognizer sr;
         private string[] commands = new string[2+2*4];
         private HttpServer webServer;
@@ -30,6 +31,8 @@ namespace FirstSpeechTest
 
         private void Form1_Load(object sender, EventArgs e)
         {
+
+            createNotifyIcon();
 
             // much speech code from http://msdn.microsoft.com/en-us/library/hh361683(v=office.14).aspx
 
@@ -54,6 +57,29 @@ namespace FirstSpeechTest
                 writeLog("You could try http://stackoverflow.com/a/4115328 so as to not need them all the time");
             }
             
+        }
+
+        private void createNotifyIcon()
+        {
+            noteIcon = new NotifyIcon();
+            noteIcon.Text = this.Text;
+            noteIcon.BalloonTipTitle = this.Text;
+            noteIcon.BalloonTipText = "Simple Home Automation running in the background, click to restore.";
+            noteIcon.MouseClick += new MouseEventHandler(noteIcon_MouseClick);
+            try
+            {
+                // http://stackoverflow.com/a/90699
+                noteIcon.Icon = Properties.Resources.preferences_desktop;
+            }catch(Exception e){
+                writeLog("Unable to add icon to NotifyIcon: "+ e.Message);
+                Console.WriteLine(e);
+            }
+        }
+
+        void noteIcon_MouseClick(object sender, MouseEventArgs e)
+        {
+            WindowState = FormWindowState.Normal;
+            noteIcon.Visible = false;
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -155,6 +181,7 @@ namespace FirstSpeechTest
                 // hardware failure when turning *all* all on
                 if (percentageDimmed > 0)
                     maxChannel = 5;
+
                 for (int i = 1; i < maxChannel; i++)
                 {
                     allPorts += String.Format(FUSIONBRAIN6_DIGITAL, i, channelValue);
@@ -383,6 +410,16 @@ namespace FirstSpeechTest
             Stream OutputStream = Response.OutputStream;
             OutputStream.Write(bOutput, 0, bOutput.Length);
             OutputStream.Close();
+        }
+
+        private void Form1_Resize(object sender, EventArgs e)
+        {
+            if (WindowState == FormWindowState.Minimized)
+            {
+                noteIcon.Visible = true;
+                noteIcon.ShowBalloonTip(2000);
+                this.ShowInTaskbar = false;
+            }
         }
     }
 }

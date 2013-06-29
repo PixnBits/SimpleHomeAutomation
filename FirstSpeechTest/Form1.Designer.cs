@@ -391,6 +391,7 @@
             this.Text = "QnD FB6 Speech Recognition";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
+            this.Resize += new System.EventHandler(this.Form1_Resize);
             this.gb_ch_1.ResumeLayout(false);
             this.gb_ch_1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nud_com_number)).EndInit();
