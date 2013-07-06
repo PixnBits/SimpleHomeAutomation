@@ -11,6 +11,7 @@ using System.IO;
 using System.Net;
 using Westwind.InternetTools;
 using System.Speech.Synthesis;
+using System.Threading.Tasks;
 
 namespace FirstSpeechTest
 {
@@ -206,9 +207,8 @@ namespace FirstSpeechTest
 
             if(alsoSpeak)
             {
-                SpeechSynthesizer synth = new SpeechSynthesizer();
-                Prompt sayThis = new Prompt(lineToAdd);
-                synth.Speak(sayThis);
+                // http://stackoverflow.com/a/9434980
+                new Task(() => { this.writeLog_speakWorker(lineToAdd); }).Start();
             }
         }
 
@@ -218,6 +218,12 @@ namespace FirstSpeechTest
             {
                 this.writeLog(lineToAdd, alsoSpeak);
             });
+        }
+
+        private void writeLog_speakWorker(string lineToAdd){
+            SpeechSynthesizer synth = new SpeechSynthesizer();
+            Prompt sayThis = new Prompt(lineToAdd);
+            synth.Speak(sayThis);
         }
 
         void restartGrammar()
