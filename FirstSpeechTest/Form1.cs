@@ -12,6 +12,7 @@ using System.Net;
 using Westwind.InternetTools;
 using System.Speech.Synthesis;
 using System.Threading.Tasks;
+using System.IO.Ports;
 
 namespace FirstSpeechTest
 {
@@ -50,6 +51,8 @@ namespace FirstSpeechTest
 
             /// Register for Speech Recognition Event Notification ///
             sr.SpeechRecognized += new EventHandler<SpeechRecognizedEventArgs>(sr_SpeechRecognized);
+
+            cb_comPort_Enter(sender, e);
 
             webServer = new HttpServer();
             if( webServer.Start("http://*:8080/") ){
@@ -109,6 +112,8 @@ namespace FirstSpeechTest
             }
 
             writeLog("(" + commandIndex + ") " + speechEvent.Result.Text, true);
+            // if the computer can hear itself, it can get stuck in a loop :P
+            //writeLog(speechEvent.Result.Text, true);
 
             // could skip switch for
             //writeLog((int)(commandIndex / 2) + " " + (commandIndex % 2));
@@ -280,7 +285,7 @@ namespace FirstSpeechTest
         private void nud_com_number_ValueChanged(object sender, EventArgs e)
         {
             //TODO smart detect available ports
-            sp_fusionBrain6.PortName = "COM" + nud_com_number.Value;
+            sp_fusionBrain6.PortName = cb_comPort.SelectedItem.ToString();
         }
 
         private bool writeToPort( String toSend ){
@@ -293,7 +298,7 @@ namespace FirstSpeechTest
             }
             catch (Exception exception)
             {
-                Console.WriteLine(exception);
+                Console.WriteLine(exception.Message);
                 writeLog_threadsafe("Error in COM port communication, on " + sp_fusionBrain6.PortName, true);
             }
             return false;
@@ -436,6 +441,23 @@ namespace FirstSpeechTest
                 noteIcon.ShowBalloonTip(2000);
                 this.ShowInTaskbar = false;
             }
+        }
+
+        private void cb_comPort_Enter(object sender, EventArgs e)
+        {
+            int origIndex = cb_comPort.SelectedIndex;
+            if (origIndex == -1)
+                origIndex = 0;
+
+            cb_comPort.Items.Clear();
+            // http://msdn.microsoft.com/en-us/library/system.io.ports.serialport.getportnames.aspx
+            string[] ports = SerialPort.GetPortNames();
+            foreach (string port in ports)
+            {
+                cb_comPort.Items.Add(port);
+            }
+
+            cb_comPort.SelectedIndex = origIndex;
         }
     }
 }

@@ -37,7 +37,6 @@
             this.lbl_ch1_off = new System.Windows.Forms.Label();
             this.txb_ch1_off = new System.Windows.Forms.TextBox();
             this.btn_grammarChange = new System.Windows.Forms.Button();
-            this.nud_com_number = new System.Windows.Forms.NumericUpDown();
             this.lbl_com_number = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
@@ -61,8 +60,8 @@
             this.txb_all_on = new System.Windows.Forms.TextBox();
             this.txb_all_off = new System.Windows.Forms.TextBox();
             this.lbl_about = new System.Windows.Forms.Label();
+            this.cb_comPort = new System.Windows.Forms.ComboBox();
             this.gb_ch_1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.nud_com_number)).BeginInit();
             this.panel1.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -140,27 +139,14 @@
             this.btn_grammarChange.UseVisualStyleBackColor = true;
             this.btn_grammarChange.Click += new System.EventHandler(this.btn_grammarChange_Click);
             // 
-            // nud_com_number
-            // 
-            this.nud_com_number.Location = new System.Drawing.Point(486, 36);
-            this.nud_com_number.Name = "nud_com_number";
-            this.nud_com_number.Size = new System.Drawing.Size(42, 20);
-            this.nud_com_number.TabIndex = 5;
-            this.nud_com_number.Value = new decimal(new int[] {
-            8,
-            0,
-            0,
-            0});
-            this.nud_com_number.ValueChanged += new System.EventHandler(this.nud_com_number_ValueChanged);
-            // 
             // lbl_com_number
             // 
             this.lbl_com_number.AutoSize = true;
             this.lbl_com_number.Location = new System.Drawing.Point(428, 38);
             this.lbl_com_number.Name = "lbl_com_number";
-            this.lbl_com_number.Size = new System.Drawing.Size(52, 13);
+            this.lbl_com_number.Size = new System.Drawing.Size(26, 13);
             this.lbl_com_number.TabIndex = 6;
-            this.lbl_com_number.Text = "COM port";
+            this.lbl_com_number.Text = "Port";
             // 
             // panel1
             // 
@@ -368,11 +354,21 @@
             this.lbl_about.TabIndex = 13;
             this.lbl_about.Text = "author: i@PixnBits.org";
             // 
+            // cb_comPort
+            // 
+            this.cb_comPort.FormattingEnabled = true;
+            this.cb_comPort.Location = new System.Drawing.Point(460, 36);
+            this.cb_comPort.Name = "cb_comPort";
+            this.cb_comPort.Size = new System.Drawing.Size(68, 21);
+            this.cb_comPort.TabIndex = 14;
+            this.cb_comPort.Enter += new System.EventHandler(this.cb_comPort_Enter);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(540, 522);
+            this.Controls.Add(this.cb_comPort);
             this.Controls.Add(this.lbl_about);
             this.Controls.Add(this.btn_grammarChange);
             this.Controls.Add(this.txb_all_off);
@@ -382,7 +378,6 @@
             this.Controls.Add(this.btn_addChannel);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.lbl_com_number);
-            this.Controls.Add(this.nud_com_number);
             this.Controls.Add(this.tb_log);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
@@ -394,7 +389,6 @@
             this.Resize += new System.EventHandler(this.Form1_Resize);
             this.gb_ch_1.ResumeLayout(false);
             this.gb_ch_1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.nud_com_number)).EndInit();
             this.panel1.ResumeLayout(false);
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
@@ -417,7 +411,6 @@
         private System.Windows.Forms.Label lbl_ch1_off;
         private System.Windows.Forms.TextBox txb_ch1_off;
         private System.Windows.Forms.Button btn_grammarChange;
-        private System.Windows.Forms.NumericUpDown nud_com_number;
         private System.Windows.Forms.Label lbl_com_number;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.GroupBox groupBox3;
@@ -441,6 +434,7 @@
         private System.Windows.Forms.TextBox txb_all_on;
         private System.Windows.Forms.TextBox txb_all_off;
         private System.Windows.Forms.Label lbl_about;
+        private System.Windows.Forms.ComboBox cb_comPort;
     }
 }
 
