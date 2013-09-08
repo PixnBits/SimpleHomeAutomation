@@ -68,10 +68,6 @@
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
-            // sp_fusionBrain6
-            // 
-            this.sp_fusionBrain6.PortName = "COM8";
-            // 
             // tb_log
             // 
             this.tb_log.Enabled = false;

@@ -53,6 +53,7 @@ namespace FirstSpeechTest
             sr.SpeechRecognized += new EventHandler<SpeechRecognizedEventArgs>(sr_SpeechRecognized);
 
             cb_comPort_Enter(sender, e);
+            nud_com_number_ValueChanged(sender, e);
 
             webServer = new HttpServer();
             if( webServer.Start("http://*:8080/") ){
@@ -284,7 +285,11 @@ namespace FirstSpeechTest
 
         private void nud_com_number_ValueChanged(object sender, EventArgs e)
         {
-            //TODO smart detect available ports
+
+            if (null == cb_comPort.SelectedItem)
+                return;
+
+            Console.WriteLine("changing to " + cb_comPort.SelectedItem.ToString());
             sp_fusionBrain6.PortName = cb_comPort.SelectedItem.ToString();
         }
 
@@ -454,10 +459,15 @@ namespace FirstSpeechTest
             string[] ports = SerialPort.GetPortNames();
             foreach (string port in ports)
             {
+                Console.WriteLine("adding port " + port);
                 cb_comPort.Items.Add(port);
             }
 
-            cb_comPort.SelectedIndex = origIndex;
+            if (cb_comPort.Items.Count > 0)
+            {
+                cb_comPort.SelectedIndex = origIndex;
+                nud_com_number_ValueChanged(sender, e);
+            }
         }
     }
 }
